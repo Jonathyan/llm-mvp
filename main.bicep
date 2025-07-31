@@ -6,12 +6,14 @@ param adminUsername string
 @secure()
 param adminSshKey string
 param scriptUrl string // URL naar je 'install-app.sh' script in een publieke repo of storage account
+param allowedSshSourceIp string
 
 // Module voor het netwerk
 module network 'modules/network.bicep' = {
   name: 'networkDeployment'
   params: {
     location: location
+    allowedSshSourceIp: allowedSshSourceIp
   }
 }
 

@@ -15,7 +15,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
           protocol: 'Tcp'
           sourcePortRange: '*'
           destinationPortRange: '22'
-          sourceAddressPrefix: 'Internet'
+          sourceAddressPrefix: allowedSshSourceIp
           destinationAddressPrefix: '*'
         }
       }
