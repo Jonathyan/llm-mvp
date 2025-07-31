@@ -167,3 +167,38 @@ Open een webbrowser en navigeer naar het publieke IP-adres van je virtuele machi
 
 Je zou nu de interface van je helpdesk-chatbot moeten zien, klaar om je vragen te beantwoorden.
 
+
+---
+## Bronvermeldingen
+
+Hier zijn de directe links naar de documentatie:
+
+**Primaire Microsoft documentatie:**
+- **Microsoft Learn Bicep**: https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/
+- **Bicep reference**: https://docs.microsoft.com/en-us/azure/templates/
+- **Azure Architecture Center**: https://docs.microsoft.com/en-us/azure/architecture/
+- **Azure Well-Architected Framework**: https://docs.microsoft.com/en-us/azure/architecture/framework/
+
+**Specifieke Azure services:**
+- **Azure Virtual Machines**: https://docs.microsoft.com/en-us/azure/virtual-machines/
+- **Azure Key Vault**: https://docs.microsoft.com/en-us/azure/key-vault/
+- **Azure OpenAI Service**: https://docs.microsoft.com/en-us/azure/cognitive-services/openai/
+- **Azure Virtual Network**: https://docs.microsoft.com/en-us/azure/virtual-network/
+- **Private Endpoints**: https://docs.microsoft.com/en-us/azure/private-link/
+
+**Community en voorbeelden:**
+- **Azure QuickStart Templates**: https://github.com/Azure/azure-quickstart-templates
+- **Bicep GitHub repository**: https://github.com/Azure/bicep
+- **Azure CLI documentatie**: https://docs.microsoft.com/en-us/cli/azure/
+- **Azure PowerShell**: https://docs.microsoft.com/en-us/powershell/azure/
+
+**Community support:**
+- **Stack Overflow Azure tag**: https://stackoverflow.com/questions/tagged/azure
+- **Microsoft Tech Community**: https://techcommunity.microsoft.com/
+- **Azure Updates**: https://azure.microsoft.com/en-us/updates/
+
+**Bicep-specifieke resources:**
+- **Bicep Playground**: https://bicepdemo.z22.web.core.windows.net/
+- **Azure Resource Explorer**: https://resources.azure.com/
+
+Deze links waren essentieel voor het ontwikkelen van de modulaire structuur en dependency management van de template.
