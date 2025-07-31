@@ -15,7 +15,7 @@ De architectuur is ontworpen volgens het "defense in depth"-principe en bestaat 
 * **Virtual Machine (VM)**: Een Linux (Ubuntu) VM die de Streamlit-webapplicatie host. De VM is uitgerust met een **Managed Identity** voor veilige, wachtwoordloze authenticatie.
 * **Azure OpenAI**: De AI-dienst die de chatfunctionaliteit levert. De toegang is vergrendeld en verloopt uitsluitend via een **Private Endpoint**.
 * **Azure Key Vault**: Slaat de API-sleutel voor de OpenAI-dienst veilig op. Ook deze dienst is alleen toegankelijk via een **Private Endpoint**.
-* **Network Security Group (NSG)**: Een firewall die het verkeer naar de VM controleert en alleen de noodzakelijke poorten (SSH en HTTP) openstelt.
+* **Network Security Group (NSG)**: Een firewall die het verkeer naar de VM controleert en alleen de noodzakelijke poorten (SSH en poort 8080) openstelt.
 
 ---
 ## Vereisten
@@ -37,8 +37,8 @@ Voordat je begint, zorg ervoor dat je de volgende tools hebt geïnstalleerd en g
 │   ├── vm.bicep
 │   ├── backend.bicep
 │   └── privateEndpoints.bicep
-└── scripts/
-    └── install-app.sh
+├── deploy.sh
+└── architecture.d2
 
 ---
 ## Implementatie Stappen
@@ -52,14 +52,9 @@ git clone [https://github.com/jouw-gebruikersnaam/jouw-chatbot-repo.git](https:/
 cd jouw-chatbot-repo
 ```
 
-### Stap 2: Upload het Installatiescript
+### Stap 2: Geen Externe Scripts Nodig
 
-Het `scripts/install-app.sh` script moet op een publiek toegankelijke URL staan zodat de VM het kan downloaden. Een eenvoudige manier is om het als een **publieke GitHub Gist** te uploaden.
-
-1.  Ga naar [gist.github.com](https://gist.github.com).
-2.  Plak de inhoud van `install-app.sh` in de Gist.
-3.  Maak een "Public Gist".
-4.  Klik op de "Raw"-knop en kopieer de URL. Deze URL heb je nodig in de volgende stap.
+De applicatie wordt volledig inline geïnstalleerd via de VM Extension. Er zijn geen externe scripts of GitHub repositories nodig - alles zit ingebouwd in de Bicep templates.
 
 ### Stap 3: Rol de Infrastructuur uit
 
@@ -78,6 +73,9 @@ Het `scripts/install-app.sh` script moet op een publiek toegankelijke URL staan 
     # Lees je publieke SSH-sleutel in een variabele
     SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
     
+    # Haal je publieke IP op voor SSH toegang
+    MY_IP=$(curl -s ifconfig.me)/32
+    
     # Start de deployment
     az deployment group create \
       --resource-group JouwResourceGroep \
@@ -85,7 +83,7 @@ Het `scripts/install-app.sh` script moet op een publiek toegankelijke URL staan 
       --parameters \
         adminUsername='azureuser' \
         adminSshKey="$SSH_KEY" \
-        scriptUrl='DE_RUWE_URL_NAAR_JE_INSTALL_SCRIPT'
+        allowedSshSourceIp="$MY_IP"
     ```
 
 De implementatie duurt enkele minuten.
@@ -141,12 +139,12 @@ az cognitiveservices account list --resource-group JouwResourceGroep --query "[]
     [Service]
     User=azureuser
     Group=azureuser
-    WorkingDirectory=/home/azureuser/jouw-chatbot-repo
+    WorkingDirectory=/home/azureuser
     # Voeg de volgende regels toe:
     Environment="KEY_VAULT_NAME=naam-van-jouw-keyvault"
     Environment="AZURE_OPENAI_SERVICE=naam-van-jouw-openai-service"
     Environment="AZURE_OPENAI_DEPLOYMENT=naam-van-jouw-model-deployment"
-    ExecStart=/usr/local/bin/streamlit run app.py --server.port 80
+    ExecStart=/usr/local/bin/streamlit run app.py --server.port 8080
     Restart=always
     ```
 
@@ -161,9 +159,9 @@ az cognitiveservices account list --resource-group JouwResourceGroep --query "[]
 ---
 ## Toegang tot de Applicatie
 
-Open een webbrowser en navigeer naar het publieke IP-adres van je virtuele machine.
+Open een webbrowser en navigeer naar het publieke IP-adres van je virtuele machine op poort 8080.
 
-`http://PUBLIEK_IP_ADRES_VAN_VM`
+`http://PUBLIEK_IP_ADRES_VAN_VM:8080`
 
 Je zou nu de interface van je helpdesk-chatbot moeten zien, klaar om je vragen te beantwoorden.
 

@@ -197,8 +197,8 @@ azure-identity
 azure-keyvault-secrets
 REQEOF
         
-        # Install Python packages
-        pip3 install -r /home/azureuser/requirements.txt
+        # Install Python packages system-wide with sudo
+        sudo pip3 install -r /home/azureuser/requirements.txt
         
         # Create systemd service
         cat > /etc/systemd/system/chatbot.service << 'SERVICEEOF'
@@ -210,7 +210,7 @@ After=network.target
 User=azureuser
 Group=azureuser
 WorkingDirectory=/home/azureuser
-ExecStart=/home/azureuser/.local/bin/streamlit run app.py --server.port 8080
+ExecStart=/usr/local/bin/streamlit run app.py --server.port 8080
 Restart=always
 
 [Install]
