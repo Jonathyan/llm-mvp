@@ -97,8 +97,8 @@ resource vmExtension 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' =
     protectedSettings: {
       commandToExecute: '''
         # Update system and install dependencies
-        apt-get update
-        apt-get install -y python3-pip
+        apt update
+        apt install -y python3-pip
         
         # Create Python app
         cat > /home/azureuser/app.py << 'APPEOF'
@@ -210,7 +210,7 @@ After=network.target
 User=azureuser
 Group=azureuser
 WorkingDirectory=/home/azureuser
-ExecStart=/usr/local/bin/streamlit run app.py --server.port 80
+ExecStart=/home/azureuser/.local/bin/streamlit run app.py --server.port 8080
 Restart=always
 
 [Install]
