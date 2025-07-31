@@ -95,66 +95,142 @@ Na de uitrol is er nog één handmatige stap nodig om de applicatie volledig fun
 
 ### Stap 1: Haal de Namen van je Resources op
 
-Je hebt de naam van je Key Vault en OpenAI-service nodig. Deze kun je vinden in de Azure Portal of via de CLI:
+Je hebt de naam van je Key Vault en OpenAI-service nodig. Deze kun je vinden via de CLI:
 
 ```bash
-# Haal de naam van de Key Vault op
-az keyvault list --resource-group JouwResourceGroep --query "[].name" -o tsv
+# Haal Key Vault naam op
+KV_NAME=$(az keyvault list --resource-group JouwResourceGroep --query "[].name" -o tsv)
+echo "Key Vault: $KV_NAME"
 
-# Haal de naam van de OpenAI-service op
-az cognitiveservices account list --resource-group JouwResourceGroep --query "[].name" -o tsv
+# Haal OpenAI service naam op
+OAI_NAME=$(az cognitiveservices account list --resource-group JouwResourceGroep --query "[].name" -o tsv)
+echo "OpenAI Service: $OAI_NAME"
 ```
 
-### Stap 2: Voeg de OpenAI API-sleutel toe aan de Key Vault
+### Stap 2: Configureer Key Vault Access Policy
 
-1.  Navigeer in de Azure Portal naar je **OpenAI-service**.
-2.  Ga naar **"Keys and Endpoint"** en kopieer een van de API-sleutels.
-3.  Navigeer naar je **Key Vault**.
-4.  Ga naar **"Secrets"** en klik op **"+ Generate/Import"**.
-5.  Geef het geheim de naam **`OpenAI-API-Key`** (dit is hoofdlettergevoelig en moet exact overeenkomen).
-6.  Plak de gekopieerde API-sleutel in het "Secret value"-veld.
-7.  Klik op **"Create"**.
+Voeg jezelf toe aan de Key Vault access policy om secrets te kunnen beheren:
 
-### Stap 3: Implementeer een Model in OpenAI
+```bash
+# Haal je eigen Object ID op
+MY_OBJECT_ID=$(az ad signed-in-user show --query id -o tsv)
 
-1.  Ga in de Azure Portal naar je **OpenAI-service** en open de **Azure OpenAI Studio**.
-2.  Navigeer naar **"Deployments"**.
-3.  Maak een nieuwe implementatie aan met een model zoals `gpt-35-turbo`.
-4.  Noteer de **deployment name**. Deze heb je nodig voor de applicatieconfiguratie.
+# Voeg jezelf toe aan Key Vault access policy
+az keyvault set-policy \
+  --name $KV_NAME \
+  --object-id $MY_OBJECT_ID \
+  --secret-permissions get set list delete
+```
 
-### Stap 4: Configureer en Herstart de Applicatie
+### Stap 3: Voeg OpenAI API-sleutel toe aan Key Vault
 
-1.  Verbind met je VM via SSH. Je vindt het publieke IP-adres in de Azure Portal.
+Automatisch via CLI:
+
+```bash
+# Haal OpenAI API key op
+OAI_KEY=$(az cognitiveservices account keys list --name $OAI_NAME --resource-group JouwResourceGroep --query "key1" -o tsv)
+
+# Voeg toe aan Key Vault
+az keyvault secret set --vault-name $KV_NAME --name "OpenAI-API-Key" --value "$OAI_KEY"
+```
+
+### Stap 4: Implementeer een Model in OpenAI
+
+#### Via Azure CLI (Aanbevolen):
+```bash
+# Deploy gpt-35-turbo model
+az cognitiveservices account deployment create \
+  --name $OAI_NAME \
+  --resource-group JouwResourceGroep \
+  --deployment-name "gpt-35-turbo" \
+  --model-name "gpt-35-turbo" \
+  --model-version "0613" \
+  --model-format "OpenAI" \
+  --sku-capacity 10 \
+  --sku-name "Standard"
+
+# Verificeer deployment
+az cognitiveservices account deployment list \
+  --name $OAI_NAME \
+  --resource-group JouwResourceGroep \
+  --query "[].{name:name,model:properties.model.name,status:properties.provisioningState}" \
+  --output table
+```
+
+#### Via Azure Portal (Alternatief):
+1.  Ga naar [Azure OpenAI Studio](https://oai.azure.com)
+2.  Selecteer je OpenAI resource
+3.  Navigeer naar **"Deployments"** → **"+ Create new deployment"**
+4.  Model: **gpt-35-turbo**
+5.  Deployment name: **gpt-35-turbo** (noteer deze naam!)
+6.  Klik **"Deploy"**
+
+**Belangrijk:** Zonder model deployment krijg je een 403 error in de chatbot!
+
+### Stap 5: Configureer Environment Variables in VM Service
+
+1.  Verbind met je VM via SSH:
     ```bash
-    ssh azureuser@PUBLIEK_IP_ADRES_VAN_VM
+    VM_IP=$(az vm show -d -g JouwResourceGroep -n vm-webserver --query publicIps -o tsv)
+    ssh azureuser@$VM_IP
     ```
 
-2.  Bewerk het service-bestand om de omgevingsvariabelen toe te voegen.
+2.  Bewerk het service-bestand:
     ```bash
     sudo nano /etc/systemd/system/chatbot.service
     ```
 
-3.  Voeg de `Environment`-regels toe onder de `[Service]` sectie. Vervang de waarden met je eigen resource-namen.
+3.  Voeg de `Environment`-regels toe onder de `[Service]` sectie:
     ```ini
     [Service]
     User=azureuser
     Group=azureuser
     WorkingDirectory=/home/azureuser
-    # Voeg de volgende regels toe:
-    Environment="KEY_VAULT_NAME=naam-van-jouw-keyvault"
-    Environment="AZURE_OPENAI_SERVICE=naam-van-jouw-openai-service"
-    Environment="AZURE_OPENAI_DEPLOYMENT=naam-van-jouw-model-deployment"
+    # Voeg de volgende regels toe (vervang met je eigen resource-namen):
+    Environment="KEY_VAULT_NAME=kv-jouw-unique-string"
+    Environment="AZURE_OPENAI_SERVICE=oai-jouw-unique-string"
+    Environment="AZURE_OPENAI_DEPLOYMENT=gpt-35-turbo"
     ExecStart=/usr/local/bin/streamlit run app.py --server.port 8080
     Restart=always
     ```
 
 4.  Sla het bestand op (`Ctrl+X`, dan `Y`, dan `Enter`).
 
-5.  Herlaad en herstart de service om de wijzigingen toe te passen.
+5.  Herlaad en herstart de service:
     ```bash
     sudo systemctl daemon-reload
     sudo systemctl restart chatbot.service
+    sudo systemctl status chatbot.service
     ```
+
+### Stap 6: Test de Configuratie
+
+```bash
+# Test Managed Identity toegang tot Key Vault
+curl -H "Metadata:true" "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://vault.azure.net/"
+
+# Test OpenAI private endpoint connectiviteit
+ssh azureuser@$VM_IP
+python3 -c "import socket; print('OpenAI resolves to:', socket.gethostbyname('$OAI_NAME.openai.azure.com'))"
+curl -v https://$OAI_NAME.openai.azure.com/
+
+# Check service logs
+sudo journalctl -u chatbot.service -f
+
+# Verificeer model deployment
+az cognitiveservices account deployment list --name $OAI_NAME --resource-group JouwResourceGroep --output table
+```
+
+### Troubleshooting
+
+**Als je 403 errors krijgt:**
+- Controleer of model deployment bestaat (Stap 4)
+- Verificeer private endpoint connectiviteit (DNS moet naar 10.0.2.x resolven)
+- Check environment variables in service
+
+**Als ping naar private endpoint faalt:**
+- Dit is normaal - ICMP wordt geblokkeerd
+- Test met `telnet 10.0.2.x 443` in plaats daarvan
 
 ---
 ## Toegang tot de Applicatie
