@@ -26,6 +26,20 @@ Voordat je begint, zorg ervoor dat je de volgende tools hebt geïnstalleerd en g
 2.  **Git**: [Installatie-instructies](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 3.  **Een SSH-sleutelpaar**: Je hebt de publieke sleutel (`id_rsa.pub`) nodig voor de implementatie. [Instructies voor het genereren van een SSH-sleutel](https://docs.microsoft.com/azure/virtual-machines/linux/mac-create-ssh-keys).
 
+
+
+---
+## Tree
+.
+├── main.bicep
+├── modules/
+│   ├── network.bicep
+│   ├── vm.bicep
+│   ├── backend.bicep
+│   └── privateEndpoints.bicep
+└── scripts/
+    └── install-app.sh
+
 ---
 ## Implementatie Stappen
 
