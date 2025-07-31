@@ -1,0 +1,195 @@
+# Azure Secure Chatbot Solution Architecture
+
+title: "Azure Secure Chatbot Infrastructure" {
+  near: top-center
+  style.font-size: 24
+  style.bold: true
+}
+
+# Internet boundary
+internet: "Internet" {
+  shape: cloud
+  style.fill: "#e1f5fe"
+}
+
+# Azure Resource Group boundary
+azure_rg: "Resource Group: JouwResourceGroep" {
+  style.stroke: "#1976d2"
+  style.stroke-width: 3
+  style.fill: "#f3e5f5"
+  
+  # Virtual Network
+  vnet: "Virtual Network (VNet)" {
+    style.stroke: "#388e3c"
+    style.stroke-width: 2
+    style.fill: "#e8f5e8"
+    
+    # Public Subnet
+    public_subnet: "Public Subnet\n10.0.1.0/24" {
+      style.fill: "#fff3e0"
+      style.stroke: "#f57c00"
+      
+      # VM with components
+      vm: "Linux VM (Ubuntu)\nvm-webserver" {
+        shape: rectangle
+        style.fill: "#e3f2fd"
+        
+        managed_identity: "System-Assigned\nManaged Identity" {
+          shape: person
+          style.fill: "#c8e6c9"
+        }
+        
+        streamlit_app: "Streamlit\nWeb Application" {
+          shape: hexagon
+          style.fill: "#f8bbd9"
+        }
+        
+        public_ip: "Public IP\npip-web-vm" {
+          shape: circle
+          style.fill: "#ffecb3"
+        }
+      }
+      
+      # NSG
+      nsg: "Network Security Group\nFirewall Rules" {
+        shape: diamond
+        style.fill: "#ffcdd2"
+      }
+    }
+    
+    # Private Subnet
+    private_subnet: "Private Subnet\n10.0.2.0/24" {
+      style.fill: "#f1f8e9"
+      style.stroke: "#689f38"
+      
+      # Private Endpoints
+      pe_keyvault: "Private Endpoint\nKey Vault" {
+        shape: circle
+        style.fill: "#dcedc8"
+      }
+      
+      pe_openai: "Private Endpoint\nOpenAI" {
+        shape: circle
+        style.fill: "#dcedc8"
+      }
+    }
+    
+    # DNS Zones
+    dns_zones: "Private DNS Zones" {
+      style.fill: "#e0f2f1"
+      
+      dns_kv: "privatelink.vaultcore.azure.net" {
+        shape: document
+        style.fill: "#b2dfdb"
+      }
+      
+      dns_oai: "privatelink.openai.azure.com" {
+        shape: document
+        style.fill: "#b2dfdb"
+      }
+    }
+  }
+  
+  # Backend Services
+  backend_services: "Backend Services" {
+    style.stroke: "#7b1fa2"
+    style.stroke-width: 2
+    style.fill: "#f3e5f5"
+    
+    keyvault: "Azure Key Vault\nkv-{unique}" {
+      shape: cylinder
+      style.fill: "#e1bee7"
+      
+      secret: "Secret:\nOpenAI-API-Key" {
+        shape: document
+        style.fill: "#f8bbd9"
+      }
+    }
+    
+    openai: "Azure OpenAI Service\noai-{unique}" {
+      shape: hexagon
+      style.fill: "#c5e1a5"
+      
+      model: "GPT-3.5 Turbo\nDeployment" {
+        shape: circle
+        style.fill: "#aed581"
+      }
+    }
+  }
+}
+
+# User
+user: "End User" {
+  shape: person
+  style.fill: "#ffab91"
+}
+
+# Connection flows
+user -> internet: "HTTPS Request"
+internet -> azure_rg.vnet.public_subnet.vm.public_ip: "Port 80/443" {
+  style.stroke: "#d32f2f"
+  style.stroke-width: 2
+}
+
+azure_rg.vnet.public_subnet.nsg -> azure_rg.vnet.public_subnet.vm: "Allow HTTP/SSH" {
+  style.stroke: "#388e3c"
+}
+
+azure_rg.vnet.public_subnet.vm.streamlit_app -> azure_rg.vnet.public_subnet.vm.managed_identity: "Uses Identity"
+
+azure_rg.vnet.public_subnet.vm.managed_identity -> azure_rg.vnet.private_subnet.pe_keyvault: "Get Secrets\n(Private Network)" {
+  style.stroke: "#7b1fa2"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+
+azure_rg.vnet.private_subnet.pe_keyvault -> azure_rg.backend_services.keyvault: "Private Link" {
+  style.stroke: "#7b1fa2"
+  style.stroke-width: 2
+}
+
+azure_rg.vnet.public_subnet.vm.streamlit_app -> azure_rg.vnet.private_subnet.pe_openai: "AI Requests\n(Private Network)" {
+  style.stroke: "#4caf50"
+  style.stroke-width: 2
+  style.stroke-dash: 5
+}
+
+azure_rg.vnet.private_subnet.pe_openai -> azure_rg.backend_services.openai: "Private Link" {
+  style.stroke: "#4caf50"
+  style.stroke-width: 2
+}
+
+# DNS Resolution
+azure_rg.vnet.dns_zones.dns_kv -> azure_rg.vnet.private_subnet.pe_keyvault: "DNS Resolution" {
+  style.stroke: "#00acc1"
+  style.stroke-dash: 3
+}
+
+azure_rg.vnet.dns_zones.dns_oai -> azure_rg.vnet.private_subnet.pe_openai: "DNS Resolution" {
+  style.stroke: "#00acc1"
+  style.stroke-dash: 3
+}
+
+# Security annotations
+security_note: "Security Features:" {
+  near: bottom-left
+  style.font-size: 14
+  style.bold: true
+}
+
+security_list: "• No public access to backend services\n• Managed Identity (no passwords)\n• Private endpoints only\n• Network segmentation\n• Firewall rules (NSG)" {
+  near: bottom-left
+  style.font-size: 12
+}
+
+# Data flow annotation
+data_flow: "Data Flow:" {
+  near: bottom-right
+  style.font-size: 14
+  style.bold: true
+}
+
+flow_list: "1. User → Internet → VM\n2. VM → Private Endpoint → Key Vault\n3. VM → Private Endpoint → OpenAI\n4. All backend traffic stays private" {
+  near: bottom-right
+  style.font-size: 12
+}

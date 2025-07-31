@@ -1,4 +1,4 @@
-# Infrastructuur voor een Veilige Azure Chatbot
+# Infrastructuur voor een veilige Azure Chatbot
 
 Dit project implementeert een veilige, interne helpdesk-chatbot in Microsoft Azure. De infrastructuur wordt volledig als code gedefinieerd met **Bicep**, wat zorgt voor een consistente en herhaalbare uitrol.
 
