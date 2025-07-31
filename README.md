@@ -86,7 +86,7 @@ De applicatie wordt volledig inline geïnstalleerd via de VM Extension. Er zijn 
         allowedSshSourceIp="$MY_IP"
     ```
 
-De implementatie duurt enkele minuten.
+De implementatie duurt enkele minuten. De VM Extension wacht 60 seconden na boot voordat de installatie begint om ervoor te zorgen dat het systeem volledig klaar is.
 
 ---
 ## Configuratie na Implementatie

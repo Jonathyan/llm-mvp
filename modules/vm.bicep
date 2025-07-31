@@ -96,7 +96,10 @@ resource vmExtension 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' =
     autoUpgradeMinorVersion: true
     protectedSettings: {
       commandToExecute: '''
-        # Update system and install dependencies
+        # Wait for system to be fully ready and update dependencies
+        sleep 60
+        systemctl is-system-running --wait
+        export DEBIAN_FRONTEND=noninteractive
         apt update
         apt install -y python3-pip
         
@@ -197,8 +200,12 @@ azure-identity
 azure-keyvault-secrets
 REQEOF
         
-        # Install Python packages system-wide with sudo
-        sudo pip3 install -r /home/azureuser/requirements.txt
+        # Install Python packages system-wide (already running as root)
+        pip3 install -r /home/azureuser/requirements.txt
+        
+        # Fix file ownership for azureuser
+        chown azureuser:azureuser /home/azureuser/app.py
+        chown azureuser:azureuser /home/azureuser/requirements.txt
         
         # Create systemd service
         cat > /etc/systemd/system/chatbot.service << 'SERVICEEOF'
