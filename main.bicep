@@ -5,7 +5,7 @@ param location string = resourceGroup().location
 param adminUsername string
 @secure()
 param adminSshKey string
-param scriptUrl string // URL naar je 'install-app.sh' script in een publieke repo of storage account
+// Removed scriptUrl parameter - using inline script instead
 param allowedSshSourceIp string
 
 // Module voor het netwerk
@@ -26,7 +26,6 @@ module vm 'modules/vm.bicep' = {
     subnetId: network.outputs.publicSubnetId
     adminUsername: adminUsername
     adminSshKey: adminSshKey
-    scriptUrl: scriptUrl
   }
 }
 
