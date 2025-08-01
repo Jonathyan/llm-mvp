@@ -30,20 +30,19 @@ Voordat je begint, zorg ervoor dat je de volgende tools hebt geïnstalleerd en g
 
 ---
 ## Tree
-.
+
 ├── main.bicep
 ├── modules/
 │   ├── network.bicep
 │   ├── vm.bicep
 │   ├── backend.bicep
 │   └── privateEndpoints.bicep
-├── deploy.sh
-└── architecture.d2
+└── deploy.sh
 
 ---
-## Implementatie Stappen
+## Implementatie stappen
 
-### Stap 1: Kloon de Repository
+### Stap 1: Kloon de repository
 
 Kloon de repository met alle Bicep- en applicatiebestanden naar je lokale machine.
 
@@ -52,11 +51,11 @@ git clone [https://github.com/jouw-gebruikersnaam/jouw-chatbot-repo.git](https:/
 cd jouw-chatbot-repo
 ```
 
-### Stap 2: Geen Externe Scripts Nodig
+### Stap 2: Geen externe scripts nodig
 
 De applicatie wordt volledig inline geïnstalleerd via de VM Extension. Er zijn geen externe scripts of GitHub repositories nodig - alles zit ingebouwd in de Bicep templates.
 
-### Stap 3: Rol de Infrastructuur uit
+### Stap 3: Rol de infrastructuur uit
 
 1.  Log in op Azure via de CLI:
     ```bash
@@ -89,11 +88,11 @@ De applicatie wordt volledig inline geïnstalleerd via de VM Extension. Er zijn 
 De implementatie duurt enkele minuten. De VM Extension wacht 60 seconden na boot voordat de installatie begint om ervoor te zorgen dat het systeem volledig klaar is.
 
 ---
-## Configuratie na Implementatie
+## Configuratie na implementatie
 
 Na de uitrol is er nog één handmatige stap nodig om de applicatie volledig functioneel te maken.
 
-### Stap 1: Haal de Namen van je Resources op
+### Stap 1: Haal de namen van je resources op
 
 Je hebt de naam van je Key Vault en OpenAI-service nodig. Deze kun je vinden via de CLI:
 
@@ -134,7 +133,7 @@ OAI_KEY=$(az cognitiveservices account keys list --name $OAI_NAME --resource-gro
 az keyvault secret set --vault-name $KV_NAME --name "OpenAI-API-Key" --value "$OAI_KEY"
 ```
 
-### Stap 4: Implementeer een Model in OpenAI
+### Stap 4: Implementeer een model in OpenAI
 
 #### Via Azure CLI (Aanbevolen):
 ```bash
@@ -167,7 +166,7 @@ az cognitiveservices account deployment list \
 
 **Belangrijk:** Zonder model deployment krijg je een 403 error in de chatbot!
 
-### Stap 5: Configureer Environment Variables in VM Service
+### Stap 5: Configureer environment variables in de VM
 
 1.  Verbind met je VM via SSH:
     ```bash
@@ -203,7 +202,7 @@ az cognitiveservices account deployment list \
     sudo systemctl status chatbot.service
     ```
 
-### Stap 6: Test de Configuratie
+### Stap 6: Test de configuratie
 
 ```bash
 # Test Managed Identity toegang tot Key Vault
@@ -233,7 +232,7 @@ az cognitiveservices account deployment list --name $OAI_NAME --resource-group J
 - Test met `telnet 10.0.2.x 443` in plaats daarvan
 
 ---
-## Toegang tot de Applicatie
+## Toegang tot de applicatie
 
 Open een webbrowser en navigeer naar het publieke IP-adres van je virtuele machine op poort 8080.
 
@@ -274,5 +273,3 @@ Hier zijn de directe links naar de documentatie:
 **Bicep-specifieke resources:**
 - **Bicep Playground**: https://bicepdemo.z22.web.core.windows.net/
 - **Azure Resource Explorer**: https://resources.azure.com/
-
-Deze links waren essentieel voor het ontwikkelen van de modulaire structuur en dependency management van de template.
