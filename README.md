@@ -142,11 +142,11 @@ az cognitiveservices account deployment create \
   --name $OAI_NAME \
   --resource-group JouwResourceGroep \
   --deployment-name "gpt-35-turbo" \
-  --model-name "gpt-35-turbo" \
-  --model-version "0613" \
+  --model-name "gpt-4.1" \
+  --model-version "2025-04-14" \
   --model-format "OpenAI" \
   --sku-capacity 10 \
-  --sku-name "Standard"
+  --sku-name "DataZoneStandard"
 
 # Verificeer deployment
 az cognitiveservices account deployment list \
@@ -155,14 +155,6 @@ az cognitiveservices account deployment list \
   --query "[].{name:name,model:properties.model.name,status:properties.provisioningState}" \
   --output table
 ```
-
-#### Via Azure Portal (Alternatief):
-1.  Ga naar [Azure OpenAI Studio](https://oai.azure.com)
-2.  Selecteer je OpenAI resource
-3.  Navigeer naar **"Deployments"** → **"+ Create new deployment"**
-4.  Model: **gpt-35-turbo**
-5.  Deployment name: **gpt-35-turbo** (noteer deze naam!)
-6.  Klik **"Deploy"**
 
 **Belangrijk:** Zonder model deployment krijg je een 403 error in de chatbot!
 
@@ -232,7 +224,7 @@ az cognitiveservices account deployment list --name $OAI_NAME --resource-group J
 - Test met `telnet 10.0.2.x 443` in plaats daarvan
 
 ---
-## Toegang tot de applicatie
+## Stap 7: Test toegang tot de applicatie
 
 Open een webbrowser en navigeer naar het publieke IP-adres van je virtuele machine op poort 8080.
 
